@@ -5,7 +5,7 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 
 require('dotenv').config();
-const API_PORT = 3000;
+const API_PORT = 3001;
 
 const router = express.Router();
 
@@ -15,6 +15,7 @@ app.use(cors({ origin: "*" }));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+// method that fetches current storck price
 async function fetchPrice(ticker) {
     let url = "https://api.marketdata.app/v1/stocks/quotes/" + ticker;
 
@@ -38,6 +39,7 @@ async function fetchPrice(ticker) {
     return res;
 };
 
+// method that fetches candlestick stock data
 async function fetchCandles(ticker, d1, d2) {
     let url = "https://api.marketdata.app/v1/stocks/candles/D/" + ticker;
     let res = axios.get(url, {
@@ -62,26 +64,31 @@ async function fetchCandles(ticker, d1, d2) {
     return res;
 };
 
+// api router that gets current stock price
 router.get("/getPrice/:ticker?", (req, res)=> {
     let ticker = req.params.ticker;
 
-    fetchPrice(ticker).then(priceObj=>{
+    fetchPrice(ticker.trim()).then(priceObj=>{
         console.log("priceObj: ", priceObj)
         if(priceObj) res.json({ success: true, data: priceObj})
         else res.json({success: false})
     })
 });
 
+// api router that gets candlestick stock data
 router.get("/getCandles", (req, res)=>{
     let {ticker, d1, d2} = req.query;
-    console.log(ticker, d1, d2);
-    fetchCandles(ticker, d1, d2).then(candleObj=> {
+    console.log(ticker.trim(), d1, d2);
+
+    fetchCandles(ticker.trim(), d1, d2).then(candleObj=> {
         console.log("candleObj: ", candleObj);
         let ans;
-        if(candleObj) ans = {success: true, data: candleObj};
+        if(candleObj){ 
+            candleObj.Symbol = ticker.trim().toUpperCase();
+            ans = {success: true, data: candleObj};
+        }
         else ans = {success: false} ;
-        res.json(ans);
-        
+        res.json(ans);  
     })
 });
 
@@ -90,4 +97,3 @@ app.use("/", router);
 
 // launch our backend into a port
 app.listen(API_PORT, () => console.log(`LISTENING ON PORT ${API_PORT}`));
-
