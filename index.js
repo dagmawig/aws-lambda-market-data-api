@@ -3,6 +3,7 @@ const app = express();
 const axios = require("axios");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const serverless = require("serverless-http");
 
 require('dotenv').config();
 const API_PORT = 3001;
@@ -96,4 +97,6 @@ router.get("/getCandles", (req, res)=>{
 app.use("/", router);
 
 // launch our backend into a port
-app.listen(API_PORT, () => console.log(`LISTENING ON PORT ${API_PORT}`));
+// app.listen(API_PORT, () => console.log(`LISTENING ON PORT ${API_PORT}`));
+
+module.exports.handler = serverless(app);
